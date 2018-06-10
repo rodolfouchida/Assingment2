@@ -1,6 +1,7 @@
 # Assingment2
 
 Como usar:
+
     gcc -o output assignment.c auxiliar.c -lm
 
     ./output <arquivo de pontos da binormal> <grau do polinomio>
@@ -9,7 +10,9 @@ Resultado:
     arquivo "results.dat" com os valores dos coeficientes dos polinomios
 
 Exemplo [5 pontos, grau 2]
+    
     arquivo binormal.txt:
+        
         -0.9441;1.7682;1.0166$
         -0.6741;-1.3614;-0.1728$
         0.56;-0.8731;1.6253$
@@ -17,9 +20,11 @@ Exemplo [5 pontos, grau 2]
         0.2153;1.065;-0.8465$
 
     comando:
+    
         ./output binormal.txt 2
 
     resultado no terminal:
+
                                           [A]
 |+1.00000|       |-0.94410|      |+1.76820|      |-1.66936|      |+1.57604|      |+2.78675|      
 |+1.00000|       |-0.67410|      |-1.36140|      |+0.91772|      |-0.61863|      |+0.84221|      
