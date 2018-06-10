@@ -1,65 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include "auxiliar.h"
 
 int i,j,k;
-
-void nrerror(char error_text[])
-{
-    printf("%s\n", error_text);
-    exit(0);
-};
-
-void showSystem(double **A, char c, int rows, int cols) {
-    printf("\n%*c[%c]\n", 7*cols,' ', c);
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < cols; j++)
-            printf("|%+02.5lf|\t ", A[i][j]);
-        printf("\n");
-    }
-}
-
-void showArray(double *X, char c, int rows) {
-    int i;
-    printf("\n");
-    for (i = 0; i < rows; i++) {
-        printf("%c[%d] = %2.5lf\n",c,i, X[i]);
-    }
-}
-
-double *createArray(int n)
-{
-    double *array;
-
-    if (( array = malloc( n*sizeof( double ))) == NULL ) {
-        nrerror("SEM MEMORIA!"); 
-    }
-
-    return array;
-}
-
-double **createMatrix(int rows, int cols)
-{
-    double **matrix;
-
-    /* n IS THE nUMBER OF ROWS */
-    if (( matrix = malloc( rows*sizeof( double* ))) == NULL ) {
-        nrerror("SEM MEMORIA!"); 
-    }
-
-    /* n IS THE nUMBER OF COLUMnS */
-    for ( i = 0; i < rows; i++ )
-    {
-        if (( matrix[i] = malloc( cols*sizeof( double ))) == NULL )
-        {
-            nrerror("SEM MEMORIA!");
-        }
-    }
-
-    /* nxn MATRIX */
-    return matrix;
-}
 
 double **cholesky(double **A, int n){
     double sum;
@@ -67,28 +8,33 @@ double **cholesky(double **A, int n){
 
     /* CREATE THE MATRIX WITH THE SAME SIZE OF A */
     G = createMatrix(n, n);
+    
+    //printf("[*] Matrix criada!\n");
 
-    for (k = 0; k < n; k++)
-        for (i = 0; i <= k; i++)
-        {
+    for (k = 0; k < n; k++){
+        for (i = 0; i <= k; i++){
+            //printf("[*] k=%d, i=%d\n", k, i);
             /* THE SUM IS THE SAME FOR BOTH SITUACIOn */
             sum = 0;
-            for (j = 0; j < i; j++)
-            {
+            for (j = 0; j < i; j++){
                 sum += G[i][j] * G[k][j];
             }
-
+            //printf("[*] sum: %lf\n", sum);
             /* CALCULATE THE Gkk AnD Gjk */
-            if (i == k)
-            {
+            if (i == k){
                 if(A[i][i] - sum <= 0)
                     nrerror("nAO DEFInIDA POSITIVA");
+                //printf("[*] A[i][i]: %lf\n", A[i][i]);
                 G[i][i] = sqrt(A[i][i] - sum);
+                //printf("[*] G[i][i]: %lf\n", G[i][i]);
             }
-            else
-                G[k][i] = 1.0 / G[i][i] * (A[k][i] - sum);
+            else {
+                //printf("[*] A[k][i]: %lf\n", A[k][i]);
+                G[k][i] = 1.0 / (G[i][i] * (A[k][i] - sum));
+                //printf("[*] G[k][i]: %lf\n", G[k][i]);
+            }
         }
-
+    }
     /* RETURn THE DECOMPOSITIOn */
     return G;
 }
@@ -154,70 +100,13 @@ void luDecomposition(double **mat, double **lower, double **upper, int n)
     }
 }
 
-void transposeMatrix(double **A, double **T, int row, int col)
-{
-    for (i = 0; i < row; i++) {
-        for (j = 0; j < col; j++) {
-            T[i][j] = A[j][i];
-        }
-    }
-}
-
-void matrixMultiplication(double **A, double **B, double **R, int m, int p, int q)
-{
-    // [A]*[B] = [R]
-    int sum = 0;
-    int c, d, k;
-    for (c = 0; c < m; c++) {
-        for (d = 0; d < q; d++) {
-            for (k = 0; k < p; k++) {
-                sum = sum + A[c][k]*B[k][d];
-            }
-            R[c][d] = sum;
-            sum = 0;
-        }
-    }
-}
-
-int numberOfLines(FILE *f) {
-    char c;
-    int count = 0;
-    // Extract characters from file and store in character c
-    for (c = getc(f); c != EOF; c = getc(f))
-        if(c == '\n') // Increment count if this character is newline
-            count = count + 1;
-    // Close the file
-    //printf("The file has %d lines\n ", count);
-    fseek(f, 0, SEEK_SET);
-
-    return count;
-}
-
-const char* getfield(char* line, int num)
-{
-    const char* tok;
-    for (tok = strtok(line, ";");
-        tok && *tok;
-        tok = strtok(NULL, ";\n"))
-    {
-        if (!--num)
-            return tok;
-    }
-    return NULL;
-}
-
 int main(int argc, char **argv)
 {
     int count;
 
-    double **A;
-    double **B;
-    double **arr;
-    double *z;
-
     int grau = atoi(argv[2]);
     if (grau < 1){
-        printf("[!] Grau do polinomio deve ser no minimo 1!");
+        printf("[!] Grau do polinomio deve ser no minimo 1!\n");
         exit(EXIT_FAILURE);
     }
     
@@ -233,10 +122,10 @@ int main(int argc, char **argv)
 
     count = numberOfLines(f);
     
+    double **A;
+    double *b;
     A = createMatrix(count, n);
-    B = createMatrix(n, count);
-    arr = createMatrix(count, count);
-    z = createArray(count);
+    b = createArray(count);
     
     i=0; 
     while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
@@ -245,7 +134,7 @@ int main(int argc, char **argv)
         //printf("%s",line);
         char *tmp;
         tmp=strdup(line);
-        z[i] = atof(getfield(tmp, 3));
+        b[i] = atof(getfield(tmp, 3));
         free(tmp);
         A[i][0] = 1.0;
         tmp=strdup(line);
@@ -269,27 +158,40 @@ int main(int argc, char **argv)
     if(line)
         free(line);
 
-    showSystem(A, 'A', count, n);
+    showSystem(A, "A", count, n);
+    showArray(b,"b", count);
 
-    transposeMatrix(A, B, n, count);
-    showSystem(B, 'B', n, count);
+    double **At;
+    At = transposeMatrix(A, count, n);
+    showSystem(At, "At", n, count);
 
-    matrixMultiplication(B, A, arr, n, count, n);
-    showSystem(arr, 'M', n, n);
+    double **M;
+    M = matrixMultiplication(At, A, n, count, n);
+    showSystem(M, "M", n, n);
+   
+    double *bp;
+    bp = arrayMultiplication(At, b, n, count);
+    showArray(bp,"bp", n);
+
+    printf("[*] Cholesky\n");
+
+    double **L;
+    L = cholesky(M, n);
+    showSystem(L, "L", n, n);
+
+    double *y;
+    y = createArray(n);
+    choleskySolucion(L, bp, y, n);
+    showArray(y,"y", n);
     
-//    double **lower;
-//    double **upper;
-    double **G;
+    double **Lt;
+    Lt = transposeMatrix(L, n, n);
+    showSystem(Lt, "Lt", n, n);
 
-//    lower = createMatrix(n, n);
-//    upper = createMatrix(n, n);
-
-//    luDecomposition(arr, lower, upper, n);
-//    showSystem(lower, 'L', n, n);
-//    showSystem(upper, 'U', n, n);
-
-    G = cholesky(arr, n);
-    showSystem(G, 'G', n, n);
+    double *c;
+    c = createArray(n);
+    choleskySolucion(Lt, y, c, n);
+    showArray(c,"c", n);
 
     return 0;
 }

@@ -16,7 +16,7 @@ def writeFile(x, y, z, name):
     f.closed
 
 if __name__=='__main__':
-    print("[*] Python version: {}".format(sys.version))
-    print("[*] Python version: {}".format(platform.python_version()))
+    #print("[*] Python version: {}".format(sys.version))
+    #print("[*] Python version: {}".format(platform.python_version()))
     x, y, z = generate(5)
     writeFile(x, y, z, 'binormal.txt')
