@@ -193,5 +193,10 @@ int main(int argc, char **argv)
     choleskySolucion(Lt, y, c, n);
     showArray(c,"c", n);
 
+    FILE *fp = fopen("results.dat", "ab+");
+    for(i=0;i<n;i++)
+        fprintf(fp, "%lf\n", c[i]);
+    fclose(fp);
+
     return 0;
 }
