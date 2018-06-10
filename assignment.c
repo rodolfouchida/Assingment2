@@ -53,7 +53,7 @@ void choleskySolucion(double **a, double b[], double x[], int n)
         x[i] = (b[i] - sum) / a[i][i];
     }
 
-    /* showArray(x,n,'y'); */
+    /* //showArray(x,n,'y'); */
 
     /* SOLVE THE SYSTEM USING 'Y' CALCULATED BEFORE, AND STORE THE ANSWER IN X */
     for (i=n-1;i>=0;i--) {
@@ -64,7 +64,7 @@ void choleskySolucion(double **a, double b[], double x[], int n)
         x[i] = (x[i] - sum) / a[i][i];
     }
 
-    /* showArray(x,n,'x'); */
+    /* //showArray(x,n,'x'); */
 
 }
 
@@ -158,44 +158,44 @@ int main(int argc, char **argv)
     if(line)
         free(line);
 
-    showSystem(A, "A", count, n);
-    showArray(b,"b", count);
+    //showSystem(A, "A", count, n);
+    //showArray(b,"b", count);
 
     double **At;
     At = transposeMatrix(A, count, n);
-    showSystem(At, "At", n, count);
+    //showSystem(At, "At", n, count);
 
     double **M;
     M = matrixMultiplication(At, A, n, count, n);
-    showSystem(M, "M", n, n);
+    //showSystem(M, "M", n, n);
    
     double *bp;
     bp = arrayMultiplication(At, b, n, count);
-    showArray(bp,"bp", n);
+    //showArray(bp,"bp", n);
 
     printf("[*] Cholesky\n");
 
     double **L;
     L = cholesky(M, n);
-    showSystem(L, "L", n, n);
+    //showSystem(L, "L", n, n);
 
     double *y;
     y = createArray(n);
     choleskySolucion(L, bp, y, n);
-    showArray(y,"y", n);
+    //showArray(y,"y", n);
     
     double **Lt;
     Lt = transposeMatrix(L, n, n);
-    showSystem(Lt, "Lt", n, n);
+    //showSystem(Lt, "Lt", n, n);
 
     double *c;
     c = createArray(n);
     choleskySolucion(Lt, y, c, n);
-    showArray(c,"c", n);
+    //showArray(c,"c", n);
 
     FILE *fp = fopen("results.dat", "w+");
     for(i=0;i<n;i++)
-        fprintf(fp, "%lf\n", c[i]);
+        fprintf(fp, "%lf;\n", c[i]);
     fclose(fp);
 
     return 0;

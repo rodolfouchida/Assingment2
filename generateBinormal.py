@@ -18,5 +18,5 @@ def writeFile(x, y, z, name):
 if __name__=='__main__':
     #print("[*] Python version: {}".format(sys.version))
     #print("[*] Python version: {}".format(platform.python_version()))
-    x, y, z = generate(5)
+    x, y, z = generate(50)
     writeFile(x, y, z, 'binormal.txt')
