@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # required pip3 install matplotlib
-
+import math
 import csv
 
 def readFile(name):
@@ -40,30 +40,33 @@ if __name__ == '__main__':
         ax = fig.gca(projection='3d')
 
         # Make data.
-        X = np.arange(-5, 5, 0.25)
-        Y = np.arange(-5, 5, 0.25)
+        X = np.arange(-2, 2, 0.25)
+        Y = np.arange(-2, 2, 0.25)
         X, Y = np.meshgrid(X, Y)
     
         c = readFile("./results.dat")
-        Z = c[0] + c[1]*X + c[2]*Y + c[3]*X*Y
-        for i in range(4, len(c)):
-            if i % 2 == 0:
-                Z += c[i]*pow(X, (i/2))*pow(Y, (i/2)-1)
-            else:
-                Z += c[i]*pow(X, (i-1)/2)*pow(Y, (i-1)/2)
-
-        # Plot the surface.
-        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+        m = int(math.sqrt(len(c)) - 1)
 
         xs, ys, zs = readScatter("./binormal.txt")
-        ax.scatter(xs, ys, zs)
         
+        Z = []
+        for w in range(0, len(xs)):
+            s=0
+            k=0
+            for i in range(0, m):
+                for j in range(0, m):
+                    s += c[k] * pow(xs[w], i) * pow(ys[w], j)
+                    k += 1
+            Z.append(s)
+
+        ax.scatter(xs, ys, zs)
+        ax.scatter(xs, ys, Z)
         # Customize the z axis.
-        ax.set_zlim(-5.01, 5.01)
+        ax.set_zlim(-2.01, 2000.01)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
         # Add a color bar which maps values to colors.
-        fig.colorbar(surf, shrink=0.5, aspect=5)
+        #fig.colorbar(surf, shrink=0.5, aspect=5)
 
         plt.show()
