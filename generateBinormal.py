@@ -195,6 +195,7 @@ def generate(name='binormal', npontos=1000, nbins=5, _grau="3"):
 
 if __name__=='__main__':
     subprocess.call("rm -f "+prefix+"*", shell=True)
+    subprocess.call("rm -f teste*", shell=True)
     if (len(sys.argv) == 4):
         generate(prefix, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
         generate("teste", int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
