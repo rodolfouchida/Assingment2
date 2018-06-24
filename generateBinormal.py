@@ -73,8 +73,8 @@ def readScatter(name):
 def erro(A, B):
     C = []
     for i,j in zip(A, B):
-        C.append(math.sqrt(pow(i-j, 2)))
-    print("[*] Erro médio: {}".format(sum(C)/len(C)))
+        C.append(math.sqrt(math.pow(i-j, 2)))
+    print("[*] Erro médio: {}".format(math.fsum(C)/len(C)))
     print("[*] Erro máximo: {}".format(max(C)))
 
 def showData(fileName, title):
@@ -89,59 +89,63 @@ def showData(fileName, title):
         name=file.split(".")[0]
         xs, ys, zs = readScatter("./"+name+".csv")
         c = readFile("./"+name+".dat")
-        X = X+xs
-        Y = Y+ys
-        Z = Z+zs
-        '''
-        n = len(xs)
-        m = len(c)
-        A = [0] * n
-        for i in range(n):
-            A[i] = [0] * m
-        for w in range(0, len(xs)):
-            A[w][0] = 1.0
-            A[w][1] = xs[w]
-            A[w][2] = ys[w]
-            A[w][3] = xs[w]*ys[w]
-            for i in range(4, len(c)):
-                if(i % 2 == 0):
-                    A[w][i] = A[w][i-1]*A[w][1]
-                else:
-                    A[w][i] = A[w][i-1]*A[w][2]
-        for w in range(0, len(xs)):
-            s=0
-            for i in range(0, len(c)):
-                s += c[i] * A[w][i]
-            Zp.append(s)
-        '''
-        grau = 1
-        if(len(c) == 3): grau = 1
-        elif(len(c) == 6): grau = 2
-        elif(len(c) == 10): grau = 3
-        m = grau + 1
-        for w in range(0, len(xs)):
-            s=0
-            k=0
-            for i in range(0, m):
-                for j in range(0, m):
-                    if(i+j < m):
-                        s += c[k] * pow(xs[w], i) * pow(ys[w], j)
-                        k += 1
-            Zp.append(s)
+        if(len(xs) >= len(c)):
+            X = X+xs
+            Y = Y+ys
+            Z = Z+zs
+            '''
+            n = len(xs)
+            m = len(c)
+            A = [0] * n
+            for i in range(n):
+                A[i] = [0] * m
+            for w in range(0, len(xs)):
+                A[w][0] = 1.0
+                A[w][1] = xs[w]
+                A[w][2] = ys[w]
+                A[w][3] = xs[w]*ys[w]
+                for i in range(4, len(c)):
+                    if(i % 2 == 0):
+                        A[w][i] = A[w][i-1]*A[w][1]
+                    else:
+                        A[w][i] = A[w][i-1]*A[w][2]
+            for w in range(0, len(xs)):
+                s=0
+                for i in range(0, len(c)):
+                    s += c[i] * A[w][i]
+                Zp.append(s)
+            '''
+            grau = 1
+            if(len(c) == 3): grau = 1
+            elif(len(c) == 6): grau = 2
+            elif(len(c) == 10): grau = 3
+            m = grau + 1
+            for w in range(0, len(xs)):
+                s=0
+                k=0
+                for i in range(0, m):
+                    for j in range(0, m):
+                        if(i+j < m):
+                            s += c[k] * pow(xs[w], i) * pow(ys[w], j)
+                            k += 1
+                if(math.isnan(s)): print("[{}] i:{} j:{} k:{} w:{} xs:{} ys:{}".format(name, i, j, k, w, xs[w], ys[w]))
+                Zp.append(s)
 
     # Plot de superficie
-    ax.plot_trisurf(X, Y, Z, color='r', alpha=0.5, label="amostragem")
-    ax.plot_trisurf(X, Y, Zp, color='g', alpha=0.5, label="aproximacao")
+    amostragem = ax.plot_trisurf(X, Y, Z, color='r', alpha=0.5, label='amostragem')
+    #aproximacao = ax.plot_trisurf(X, Y, Zp, color='g', alpha=0.5, label='aproximacao')
 
     # Plor scatter
-    #ax.scatter(X, Y, Z, c='r', alpha=0.5,label="amostragem")
-    #ax.scatter(X, Y, Zp, c='g', alpha=0.5,label="polinomio")
-
+    #amostragem = ax.scatter(X, Y, Z, c='r', alpha=0.5,label='amostragem')
+    aproximacao = ax.scatter(X, Y, Zp, c='g', alpha=0.5,label='aproximacao')
+    
     erro(Z, Zp)
+    
     ax.set_zlim(0.01, 1.01)
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
     plt.title(title)
+    #plt.legend(handles=[amostragem, aproximacao])
     plt.draw()
 
 def plotFunction():
@@ -202,7 +206,7 @@ if __name__=='__main__':
         print("[*] Global")
         fileName=prefix+".csv"
         showData(fileName, "Global")
-        plotFunction()
+        #plotFunction()
         plt.show()
     else:
         print("Usage: ./generateBinormal <#pontos> <#bins> <grau do polinomio>")
