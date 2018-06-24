@@ -127,9 +127,19 @@ int main(int argc, char **argv)
         printf("[!] Grau do polinomio deve ser no minimo 1! Mudando grau para 1!\n");
         grau = 1;
     }
-    
-    int m = 2*grau + 2; //grau + 1;
-    //int n = m*m;
+   
+    int n = grau+1; 
+    int m = 0;
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i+j < n){
+                m++;
+            }
+        }
+    }
+    /*
+    int m = 2*grau + 2;
+    */
 
     char *data, *result;
     data = malloc(strlen(argv[1]) + 1);
@@ -169,6 +179,16 @@ int main(int argc, char **argv)
         double y = atof(getfield(tmp, 2));
         free(tmp);
  
+        int w = 0;
+        for(i=0; i<n; i++){
+            for(j=0; j<n; j++){
+                if(i+j < n){
+                    A[l][w] = pow(x, i)*pow(y, j);
+                    w++;
+                }
+            }
+        }
+        /*
         A[l][0] = 1.0;
         A[l][1] = x;
         A[l][2] = y;
@@ -180,6 +200,7 @@ int main(int argc, char **argv)
                 A[l][j] = A[l][j-1]*A[l][2];
             }
         }
+        */
         l++;
     }
 

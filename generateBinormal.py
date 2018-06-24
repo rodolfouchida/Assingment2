@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
-from math import pi, sqrt, exp
+from math import pi
 
 # gerar dois arquivos
 #  Gerar com distribuição uniforme de x, y
@@ -30,8 +29,8 @@ prefix="binormal"
 srccode="./src/output"
 
 def f(x,y):
-    tmp1 = 2*pi*sigma1*sigma2*sqrt(1-pow(rho,2))
-    tmp2 = exp(-Q(x,y)/2)
+    tmp1 = 2*pi*sigma1*sigma2*np.sqrt(1-pow(rho,2))
+    tmp2 = np.exp(-Q(x,y)/2)
     return (1/tmp1)*tmp2
 
 def Q(x,y):
@@ -78,9 +77,9 @@ def erro(A, B):
     print("[*] Erro médio: {}".format(sum(C)/len(C)))
     print("[*] Erro máximo: {}".format(max(C)))
 
-def showData(fileName):
+def showData(fileName, title):
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(111, projection='3d')
     X=[] 
     Y=[] 
     Z=[]
@@ -93,6 +92,7 @@ def showData(fileName):
         X = X+xs
         Y = Y+ys
         Z = Z+zs
+        '''
         n = len(xs)
         m = len(c)
         A = [0] * n
@@ -113,14 +113,52 @@ def showData(fileName):
             for i in range(0, len(c)):
                 s += c[i] * A[w][i]
             Zp.append(s)
-    ax.scatter(X, Y, Z)
-    ax.scatter(X, Y, Zp)
+        '''
+        grau = 1
+        if(len(c) == 4): grau = 1
+        elif(len(c) == 8): grau = 2
+        elif(len(c) == 10): grau = 3
+        m = grau + 1
+        for w in range(0, len(xs)):
+            s=0
+            k=0
+            for i in range(0, m):
+                for j in range(0, m):
+                    if(i+j < m):
+                        s += c[k] * pow(xs[w], i) * pow(ys[w], j)
+                        k += 1
+            Zp.append(s)
+
+    # Plot de superficie
+    ax.plot_trisurf(X, Y, Z, color='r', alpha=0.5, label="amostragem")
+    ax.plot_trisurf(X, Y, Zp, color='g', alpha=0.5, label="aproximacao")
+
+    # Plor scatter
+    #ax.scatter(X, Y, Z, c='r', alpha=0.5,label="amostragem")
+    #ax.scatter(X, Y, Zp, c='g', alpha=0.5,label="polinomio")
+
     erro(Z, Zp)
-    # Customize the z axis.
     ax.set_zlim(0.01, 1.01)
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    plt.title(title)
     plt.draw()
+
+def plotFunction():
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    X=np.arange(0, 1, 0.05) 
+    Y=np.arange(0, 1, 0.05) 
+    X, Y = np.meshgrid(X, Y)
+    Z=f(X, Y)
+    # Plot de superficie
+    ax.plot_surface(X, Y, Z)
+    ax.set_zlim(0.01, 1.01)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    plt.title("Funcao")
+    plt.draw()
+    
 
 def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
     x =  np.random.uniform(0,1,npontos)
@@ -155,17 +193,18 @@ def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
 
 
 if __name__=='__main__':
-    subprocess.call("rm "+prefix+"*", shell=True)
-    if len(sys.argv) == 4:
+    subprocess.call("rm -f "+prefix+"*", shell=True)
+    if (len(sys.argv) == 4):
         generate(prefix, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
+        print("[*] Local")
+        fileName=prefix+"_*.csv"
+        showData(fileName, "Local")
+        print("[*] Global")
+        fileName=prefix+".csv"
+        showData(fileName, "Global")
+        plotFunction()
+        plt.show()
     else:
         print("Usage: ./generateBinormal <#pontos> <#bins> <grau do polinomio>")
 
-    print("[*] Local")
-    fileName="binormal_*.csv"
-    showData(fileName)
-    print("[*] Global")
-    fileName="binormal.csv"
-    showData(fileName)
-    plt.show()
 
