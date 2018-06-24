@@ -1,5 +1,12 @@
 #include "auxiliar.h"
 
+/*
+ * Num de coeficientes do polinomio
+ * Grau 1 = 4
+ * Grau 2 = 8
+ * Grau 3 = 10
+ */
+
 int i,j,k;
 
 double **cholesky(double **A, int n){
@@ -11,16 +18,29 @@ double **cholesky(double **A, int n){
     
     ////printf("[*] Matrix criada!\n");
 
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < (i+1); j++) {
+            double s = 0;
+            for (int k = 0; k < j; k++){
+                s += G[i][k] * G[j][k];
+            }
+            if(i == j){
+                G[i][j] = sqrt(A[i][i] - s);
+            } else {
+                G[i][j] = (1.0 / G[j][j] * (A[i][j] - s));
+            }
+        }
+    }
+    return G;
+    /*
     for (k = 0; k < n; k++){
         for (i = 0; i <= k; i++){
             //printf("[*] k=%d, i=%d\n", k, i);
-            /* THE SUM IS THE SAME FOR BOTH SITUACIOn */
             sum = 0;
             for (j = 0; j < i; j++){
                 sum += G[i][j] * G[k][j];
             }
             //printf("[*] sum: %lf\n", sum);
-            /* CALCULATE THE Gkk AnD Gjk */
             if (i == k){
                 if(A[i][i] - sum <= 0)
                     nrerror("NAO DEFINIDA POSITIVA");
@@ -35,37 +55,30 @@ double **cholesky(double **A, int n){
             }
         }
     }
-    /* RETURn THE DECOMPOSITIOn */
     return G;
+    */
+}
+
+void linearSolucion(double **a, double b[], double x[], int n)
+{
+    double sum;
+    for(i = 0; i < n; ++i) {
+        sum = 0;
+        for(j = 0; j < i; ++j)
+            sum += a[i][j] * x[j];
+        x[i] = (b[i] - sum) / a[i][i];
+    }
 }
 
 void choleskySolucion(double **a, double b[], double x[], int n)
 {
     double sum;
-
-    /* SOLVE THE SYSTEM AND STORE THE ANSWER Y IN X */
-    for(i = 0; i < n; ++i) {
-        sum = 0;
-
-        for(j = 0; j < i; ++j)
-            sum += a[i][j] * x[j];
-
-        x[i] = (b[i] - sum) / a[i][i];
-    }
-
-    /* //if(grau < 3) if(grau < 10) showArray(x,n,'y'); */
-
-    /* SOLVE THE SYSTEM USING 'Y' CALCULATED BEFORE, AND STORE THE ANSWER IN X */
     for (i=n-1;i>=0;i--) {
         sum=0;
-        for(j = i+1; j < n; j++)
-            sum += a[j][i] * x[j];
-
-        x[i] = (x[i] - sum) / a[i][i];
+        for(j=n-1;j>i;j--)
+            sum += a[i][j] * x[j];
+        x[i] = (b[i] - sum) / a[i][i];
     }
-
-    /* //if(grau < 3) if(grau < 10) showArray(x,n,'x'); */
-
 }
 
 
@@ -100,8 +113,28 @@ void luDecomposition(double **mat, double **lower, double **upper, int n)
     }
 }
 
+void choleskyTest(){
+    double **M;
+    M = createMatrix(3, 3);
+    M[0][0] = 4.0;
+    M[0][1] = 12.0;
+    M[0][2] = -16.0;
+    M[1][0] = 12.0;
+    M[1][1] = 37.0;
+    M[1][2] = -43.0;
+    M[2][0] = -16.0;
+    M[2][1] = -43.0;
+    M[2][2] = 98.0;
+    double **L;
+    L = cholesky(M, 3);
+    showSystem(M, "M", 3, 3);
+    showSystem(L, "L", 3, 3);
+}
+
 int main(int argc, char **argv)
 {
+    choleskyTest();
+
     int count;
 
     int grau = atoi(argv[2]);
@@ -110,8 +143,8 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
     
-    int m = grau + 1;
-    int n = m*m;
+    int m = 2*grau + 2; //grau + 1;
+    //int n = m*m;
 
     FILE *f = fopen(argv[1], "r");
     char *record, *line, buffer[1024];
@@ -125,17 +158,17 @@ int main(int argc, char **argv)
     
     double **A;
     double *b;
-    A = createMatrix(count, n);
+    A = createMatrix(count, m);
     b = createArray(count);
-    
-    k=0; 
+
+    int l=0; 
     while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
     {
         //printf("Retrievedlineoflength%zu:\n",read);
         //printf("%s",line);
         char *tmp;
         tmp=strdup(line);
-        b[k] = atof(getfield(tmp, 3));
+        b[l] = atof(getfield(tmp, 3));
         free(tmp);
         
         tmp=strdup(line);
@@ -145,69 +178,66 @@ int main(int argc, char **argv)
         double y = atof(getfield(tmp, 2));
         free(tmp);
  
-        //printf("[*] x: %lf\n", x);
-        //printf("[*] y: %lf\n", y);
- 
-        int w = 0;
-        for(i=0; i<m; i++){
-            for(j=0; j<m; j++){
-                //printf("        [x^%d] %lf\n", i, pow(x, i));
-                //printf("        [y^%d] %lf\n", j, pow(y, j));
-                //printf("                [xy] %lf\n", pow(x, i)*pow(y, j));
-                A[k][w] = pow(x, i)*pow(y, j);
-                w++;
+        A[l][0] = 1.0;
+        A[l][1] = x;
+        A[l][2] = y;
+        A[l][3] = x*y;
+        for(j=4; j < m; j++){
+            if(j % 2 == 0){
+                A[l][j] = A[l][j-1]*A[l][1];
+            } else {
+                A[l][j] = A[l][j-1]*A[l][2];
             }
         }
-
-        k++;
+        l++;
     }
 
     fclose(f);
     if(line)
         free(line);
-
-    if(grau < 3) showSystem(A, "A", count, n);
+    
+    if(grau < 3) showSystem(A, "A", count, m);
     if(grau < 10) showArray(b,"b", count);
 
     double **At;
-    At = transposeMatrix(A, count, n);
-    if(grau < 3) showSystem(At, "At", n, count);
+    At = transposeMatrix(A, count, m);
+    if(grau < 3) showSystem(At, "At", m, count);
 
     double **M;
-    M = matrixMultiplication(At, A, n, count, n);
-    if(grau < 3) showSystem(M, "M", n, n);
+    M = matrixMultiplication(At, A, m, count, m);
+    if(grau < 3) showSystem(M, "M", m, m);
    
     double *bp;
-    bp = arrayMultiplication(At, b, n, count);
-    if(grau < 10) showArray(bp,"bp", n);
+    bp = arrayMultiplication(At, b, m, count);
+    if(grau < 10) showArray(bp,"bp", m);
 
     //printf("[*] Cholesky\n");
 
     double **L;
-    L = cholesky(M, n);
-    if(grau < 3) showSystem(L, "L", n, n);
-
+    L = cholesky(M, m);
+    if(grau < 3) showSystem(L, "L", m, m);
+    
     double *y;
-    y = createArray(n);
-    choleskySolucion(L, bp, y, n);
-    if(grau < 10) showArray(y,"y", n);
+    y = createArray(m);
+    linearSolucion(L, bp, y, m);
+    if(grau < 10) showArray(y,"y", m);
     
     double **Lt;
-    Lt = transposeMatrix(L, n, n);
-    if(grau < 3) showSystem(Lt, "Lt", n, n);
+    Lt = transposeMatrix(L, m, m);
+    if(grau < 3) showSystem(Lt, "Lt", m, m);
 
     double *c;
-    c = createArray(n);
-    choleskySolucion(Lt, y, c, n);
-    if(grau < 10) showArray(c,"c", n);
+    c = createArray(m);
+    choleskySolucion(Lt, y, c, m);
+    if(grau < 10) showArray(c,"c", m);
 
     double *r;
-    r = arrayMultiplication(A, c, count, n);
+    r = arrayMultiplication(A, c, count, m);
     if(grau < 10) showArray(r, "r", count);
     if(grau < 10) showArray(b,"b", count);
 
     FILE *fp = fopen("results.dat", "w+");
-    for(i=0;i<n;i++)
+    for(i=0;i<m;i++)
         fprintf(fp, "%lf;\n", c[i]);
     fclose(fp);
 

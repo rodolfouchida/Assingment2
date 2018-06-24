@@ -35,34 +35,47 @@ if __name__ == '__main__':
         from matplotlib.ticker import LinearLocator, FormatStrFormatter
         import numpy as np
 
-
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
-        # Make data.
-        X = np.arange(-2, 2, 0.25)
-        Y = np.arange(-2, 2, 0.25)
-        X, Y = np.meshgrid(X, Y)
-    
         c = readFile("./results.dat")
-        m = int(math.sqrt(len(c)) - 1)
-
         xs, ys, zs = readScatter("./binormal.txt")
         
+        n = len(xs)
+        m = len(c)
+        A = [0] * n
+        for i in range(n):
+            A[i] = [0] * m
+
+        for w in range(0, len(xs)):
+            A[w][0] = 1.0
+            A[w][1] = xs[w]
+            A[w][2] = ys[w]
+            A[w][3] = xs[w]*ys[w]
+            for i in range(4, len(c)):
+                if(i % 2 == 0):
+                    A[w][i] = A[w][i-1]*A[w][1]
+                else:
+                    A[w][i] = A[w][i-1]*A[w][2]
+
         Z = []
         for w in range(0, len(xs)):
             s=0
-            k=0
-            for i in range(0, m):
-                for j in range(0, m):
-                    s += c[k] * pow(xs[w], i) * pow(ys[w], j)
-                    k += 1
+            for i in range(0, len(c)):
+                s += c[i] * A[w][i]
             Z.append(s)
 
+        # Make data.
+        X = np.arange(0, 1, 0.05)
+        Y = np.arange(0, 1, 0.05)
+        X, Y = np.meshgrid(X, Y) 
+        Zp = c[0] + c[1]*X + c[2]*Y + c[3]*X*Y + c[4]*(X**2)*Y + c[5]*(X**2)*(Y**2) + c[6]*(X**3)*(Y**2) + c[7]*(X**3)*(Y**3) 
+        
         ax.scatter(xs, ys, zs)
         ax.scatter(xs, ys, Z)
+        ax.plot_surface(X, Y, Zp)
         # Customize the z axis.
-        ax.set_zlim(-2.01, 2000.01)
+        ax.set_zlim(0.01, 1.01)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
