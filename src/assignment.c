@@ -20,10 +20,11 @@ double **cholesky(double **A, int n){
             for (int k = 0; k < j; k++){
                 s += G[i][k] * G[j][k];
             }
+            sum = A[i][j] - s;
             if(i == j){
-                G[i][j] = sqrt(A[i][i] - s);
+                G[i][j] = sqrt(sum);
             } else {
-                G[i][j] = (1.0 / G[j][j] * (A[i][j] - s));
+                G[i][j] = (1.0 / G[j][j] * sum);
             }
         }
     }
@@ -119,10 +120,6 @@ int main(int argc, char **argv)
         grau = atoi(argv[2]);
     }
     
-    if (grau > 3){
-        printf("[!] Grau do polinomio deve ser no maximo 3! Mudando grau para 3!\n");
-        grau = 3;
-    }
     if (grau < 1){
         printf("[!] Grau do polinomio deve ser no minimo 1! Mudando grau para 1!\n");
         grau = 1;

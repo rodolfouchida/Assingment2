@@ -18,8 +18,8 @@ from math import pi
 #   x = sigma1, mu1
 #   y = sigma2, mu2
 #   rho = ?
-sigma1 = 0.5
-sigma2 = 0.5
+sigma1 = 0.25
+sigma2 = 0.25
 mu1 = 0.5
 mu2 = 0.5
 rho = 0
@@ -74,10 +74,10 @@ def erro(A, B):
     C = []
     for i,j in zip(A, B):
         C.append(math.sqrt(math.pow(i-j, 2)))
-    print("[*] Erro médio: {}".format(math.fsum(C)/len(C)))
-    print("[*] Erro máximo: {}".format(max(C)))
+    print("     [*] Erro médio: {}".format(math.fsum(C)/len(C)))
+    print("     [*] Erro máximo: {}".format(max(C)))
 
-def showData(fileName, title):
+def showData(fileName, title, grau):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     X=[] 
@@ -115,10 +115,6 @@ def showData(fileName, title):
                     s += c[i] * A[w][i]
                 Zp.append(s)
             '''
-            grau = 1
-            if(len(c) == 3): grau = 1
-            elif(len(c) == 6): grau = 2
-            elif(len(c) == 10): grau = 3
             m = grau + 1
             for w in range(0, len(xs)):
                 s=0
@@ -130,7 +126,8 @@ def showData(fileName, title):
                             k += 1
                 if(math.isnan(s)): print("[{}] i:{} j:{} k:{} w:{} xs:{} ys:{}".format(name, i, j, k, w, xs[w], ys[w]))
                 Zp.append(s)
-
+        else:
+            print("[!({})] Pontos de amostragem insuficientes para polinomio de grau {}".format(name, grau))
     # Plot de superficie
     amostragem = ax.plot_trisurf(X, Y, Z, color='r', alpha=0.5, label='amostragem')
     #aproximacao = ax.plot_trisurf(X, Y, Zp, color='g', alpha=0.5, label='aproximacao')
@@ -141,11 +138,10 @@ def showData(fileName, title):
     
     erro(Z, Zp)
     
-    ax.set_zlim(0.01, 1.01)
+    ax.set_zlim(min(Z)-0.5, max(Z)+0.5)
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
     plt.title(title)
-    #plt.legend(handles=[amostragem, aproximacao])
     plt.draw()
 
 def plotFunction():
@@ -164,7 +160,8 @@ def plotFunction():
     plt.draw()
     
 
-def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
+def generate(name='binormal', npontos=1000, nbins=5, _grau="3"):
+    grau = int(_grau)
     x =  np.random.uniform(0,1,npontos)
     y =  np.random.uniform(0,1,npontos)
     z = []
@@ -181,7 +178,7 @@ def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
         for i in P:
             doc.write("{};{};{}\n".format(i[0],i[1],i[2]))
     doc.closed
-    subprocess.call(srccode+" "+fileName+" "+grau, shell=True)
+    subprocess.call(srccode+" "+fileName+" "+_grau, shell=True)
 
 
     P2 = chunkIt(P, pow(nbins,2))
@@ -193,19 +190,21 @@ def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
             for j in i:
                 doc.write("{};{};{}\n".format(j[0],j[1],j[2]))
         doc.closed
-        subprocess.call(srccode+" "+fileName+" "+grau, shell=True)
+        subprocess.call(srccode+" "+fileName+" "+_grau, shell=True)
 
 
 if __name__=='__main__':
     subprocess.call("rm -f "+prefix+"*", shell=True)
     if (len(sys.argv) == 4):
         generate(prefix, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
+        grau=int(sys.argv[3])
         print("[*] Local")
         fileName=prefix+"_*.csv"
-        showData(fileName, "Local")
+        if(grau < 1): grau = 1
+        showData(fileName, "Local", grau)
         print("[*] Global")
         fileName=prefix+".csv"
-        showData(fileName, "Global")
+        showData(fileName, "Global", grau)
         #plotFunction()
         plt.show()
     else:
