@@ -87,7 +87,7 @@ def showData(fileName, title, grau):
     os.chdir("./")
     for file in glob.glob(fileName):
         name=file.split(".")[0]
-        xs, ys, zs = readScatter("./"+name+".csv")
+        xs, ys, zs = readScatter("./"+name.replace(prefix, "teste")+".csv")
         c = readFile("./"+name+".dat")
         if(len(xs) >= len(c)):
             X = X+xs
@@ -197,6 +197,7 @@ if __name__=='__main__':
     subprocess.call("rm -f "+prefix+"*", shell=True)
     if (len(sys.argv) == 4):
         generate(prefix, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
+        generate("teste", int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
         grau=int(sys.argv[3])
         print("[*] Local")
         fileName=prefix+"_*.csv"
