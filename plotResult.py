@@ -3,6 +3,11 @@
 # required pip3 install matplotlib
 import math
 import csv
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import numpy as np
 
 def readFile(name):
     with open(name, newline='') as csvfile:
@@ -27,13 +32,14 @@ def readScatter(name):
 
         return x, y, z
 
+def erro(A, B):
+    C = []
+    for i,j in zip(A, B):
+        C.append(np.sqrt(pow(i-j, 2)))
+    print("[*] Erro médio: {}".format(np.mean(C)))
+    print("[*] Erro máximo: {}".format(np.max(C)))
 
 if __name__ == '__main__':
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-        from matplotlib import cm
-        from matplotlib.ticker import LinearLocator, FormatStrFormatter
-        import numpy as np
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -74,6 +80,9 @@ if __name__ == '__main__':
         ax.scatter(xs, ys, zs)
         ax.scatter(xs, ys, Z)
         ax.plot_surface(X, Y, Zp)
+
+        erro(Z, Zp)
+
         # Customize the z axis.
         ax.set_zlim(0.01, 1.01)
         ax.zaxis.set_major_locator(LinearLocator(10))
