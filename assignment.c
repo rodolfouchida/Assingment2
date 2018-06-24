@@ -13,11 +13,7 @@ double **cholesky(double **A, int n){
     double sum;
     double **G;
 
-    /* CREATE THE MATRIX WITH THE SAME SIZE OF A */
     G = createMatrix(n, n);
-    
-    ////printf("[*] Matrix criada!\n");
-
     for (int i = 0; i < n; i++){
         for (int j = 0; j < (i+1); j++) {
             double s = 0;
@@ -32,31 +28,6 @@ double **cholesky(double **A, int n){
         }
     }
     return G;
-    /*
-    for (k = 0; k < n; k++){
-        for (i = 0; i <= k; i++){
-            //printf("[*] k=%d, i=%d\n", k, i);
-            sum = 0;
-            for (j = 0; j < i; j++){
-                sum += G[i][j] * G[k][j];
-            }
-            //printf("[*] sum: %lf\n", sum);
-            if (i == k){
-                if(A[i][i] - sum <= 0)
-                    nrerror("NAO DEFINIDA POSITIVA");
-                //printf("[*] A[i][i]: %lf\n", A[i][i]);
-                G[i][i] = sqrt(A[i][i] - sum);
-                //printf("[*] G[i][i]: %lf\n", G[i][i]);
-            }
-            else {
-                //printf("[*] A[k][i]: %lf\n", A[k][i]);
-                G[k][i] = 1.0 / (G[i][i] * (A[k][i] - sum));
-                //printf("[*] G[k][i]: %lf\n", G[k][i]);
-            }
-        }
-    }
-    return G;
-    */
 }
 
 void linearSolucion(double **a, double b[], double x[], int n)
@@ -127,8 +98,8 @@ void choleskyTest(){
     M[2][2] = 98.0;
     double **L;
     L = cholesky(M, 3);
-    showSystem(M, "M", 3, 3);
-    showSystem(L, "L", 3, 3);
+    //showSystem(M, "M", 3, 3);
+    //showSystem(L, "L", 3, 3);
 }
 
 int main(int argc, char **argv)
@@ -196,45 +167,45 @@ int main(int argc, char **argv)
     if(line)
         free(line);
     
-    if(grau < 3) showSystem(A, "A", count, m);
-    if(grau < 10) showArray(b,"b", count);
+    //if(grau < 3) showSystem(A, "A", count, m);
+    //if(grau < 10) showArray(b,"b", count);
 
     double **At;
     At = transposeMatrix(A, count, m);
-    if(grau < 3) showSystem(At, "At", m, count);
+    //if(grau < 3) showSystem(At, "At", m, count);
 
     double **M;
     M = matrixMultiplication(At, A, m, count, m);
-    if(grau < 3) showSystem(M, "M", m, m);
+    //if(grau < 3) showSystem(M, "M", m, m);
    
     double *bp;
     bp = arrayMultiplication(At, b, m, count);
-    if(grau < 10) showArray(bp,"bp", m);
+    //if(grau < 10) showArray(bp,"bp", m);
 
     //printf("[*] Cholesky\n");
 
     double **L;
     L = cholesky(M, m);
-    if(grau < 3) showSystem(L, "L", m, m);
+    //if(grau < 3) showSystem(L, "L", m, m);
     
     double *y;
     y = createArray(m);
     linearSolucion(L, bp, y, m);
-    if(grau < 10) showArray(y,"y", m);
+    //if(grau < 10) showArray(y,"y", m);
     
     double **Lt;
     Lt = transposeMatrix(L, m, m);
-    if(grau < 3) showSystem(Lt, "Lt", m, m);
+    //if(grau < 3) showSystem(Lt, "Lt", m, m);
 
     double *c;
     c = createArray(m);
     choleskySolucion(Lt, y, c, m);
-    if(grau < 10) showArray(c,"c", m);
+    //if(grau < 10) showArray(c,"c", m);
 
     double *r;
     r = arrayMultiplication(A, c, count, m);
-    if(grau < 10) showArray(r, "r", count);
-    if(grau < 10) showArray(b,"b", count);
+    //if(grau < 10) showArray(r, "r", count);
+    //if(grau < 10) showArray(b,"b", count);
 
     FILE *fp = fopen("results.dat", "w+");
     for(i=0;i<m;i++)
