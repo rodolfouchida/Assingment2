@@ -115,8 +115,8 @@ def showData(fileName, title):
             Zp.append(s)
         '''
         grau = 1
-        if(len(c) == 4): grau = 1
-        elif(len(c) == 8): grau = 2
+        if(len(c) == 3): grau = 1
+        elif(len(c) == 6): grau = 2
         elif(len(c) == 10): grau = 3
         m = grau + 1
         for w in range(0, len(xs)):
