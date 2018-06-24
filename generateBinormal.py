@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import numpy as np
-import os, argparse, sys, platform, math, subprocess
-from math import pi, sqrt, exp
+import os, glob, math, csv
+import sys, platform, subprocess
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+from math import pi, sqrt, exp
 
 # gerar dois arquivos
 #  Gerar com distribuição uniforme de x, y
@@ -22,6 +24,10 @@ sigma2 = 0.5
 mu1 = 0.5
 mu2 = 0.5
 rho = 0
+# Prefixo para arquivos de saida
+prefix="binormal"
+# Codigo C compilado
+srccode="./src/output"
 
 def f(x,y):
     tmp1 = 2*pi*sigma1*sigma2*sqrt(1-pow(rho,2))
@@ -45,8 +51,78 @@ def chunkIt(seq, num):
 
     return out
 
-def generate(name='binormal.txt', npontos=100, nbins=5):
+def readFile(name):
+    with open(name, newline='') as csvfile:
+        content = csv.reader(csvfile, delimiter=';')
+        c = []
+        for row in content:
+            c.append(float(row[0]))
+    return c
 
+def readScatter(name):
+    with open(name, newline='') as csvfile:
+        content = csv.reader(csvfile, delimiter=';')
+        x = []
+        y = []
+        z = []
+        for row in content:
+            x.append(float(row[0])) 
+            y.append(float(row[1]))
+            z.append(float(row[2]))
+    return x, y, z
+
+def erro(A, B):
+    C = []
+    for i,j in zip(A, B):
+        C.append(math.sqrt(pow(i-j, 2)))
+    print("[*] Erro médio: {}".format(sum(C)/len(C)))
+    print("[*] Erro máximo: {}".format(max(C)))
+
+def showData(fileName):
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    X=[] 
+    Y=[] 
+    Z=[]
+    Zp=[]
+    os.chdir("./")
+    for file in glob.glob(fileName):
+        name=file.split(".")[0]
+        xs, ys, zs = readScatter("./"+name+".csv")
+        c = readFile("./"+name+".dat")
+        X = X+xs
+        Y = Y+ys
+        Z = Z+zs
+        n = len(xs)
+        m = len(c)
+        A = [0] * n
+        for i in range(n):
+            A[i] = [0] * m
+        for w in range(0, len(xs)):
+            A[w][0] = 1.0
+            A[w][1] = xs[w]
+            A[w][2] = ys[w]
+            A[w][3] = xs[w]*ys[w]
+            for i in range(4, len(c)):
+                if(i % 2 == 0):
+                    A[w][i] = A[w][i-1]*A[w][1]
+                else:
+                    A[w][i] = A[w][i-1]*A[w][2]
+        for w in range(0, len(xs)):
+            s=0
+            for i in range(0, len(c)):
+                s += c[i] * A[w][i]
+            Zp.append(s)
+    ax.scatter(X, Y, Z)
+    ax.scatter(X, Y, Zp)
+    erro(Z, Zp)
+    # Customize the z axis.
+    ax.set_zlim(0.01, 1.01)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    plt.draw()
+
+def generate(name='binormal', npontos=1000, nbins=5, grau="3"):
     x =  np.random.uniform(0,1,npontos)
     y =  np.random.uniform(0,1,npontos)
     z = []
@@ -58,63 +134,38 @@ def generate(name='binormal.txt', npontos=100, nbins=5):
         P1.append((i, j, k))
     P = sorted(P1, key=lambda element:(element[0], element[1]))
 
-    with open(name, "w+") as doc:
+    fileName = name
+    with open(fileName+".csv", "w+") as doc:
         for i in P:
             doc.write("{};{};{}\n".format(i[0],i[1],i[2]))
     doc.closed
+    subprocess.call(srccode+" "+fileName+" "+grau, shell=True)
 
-    # Plot de pontos gerados
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.scatter(x, y, z)
 
     P2 = chunkIt(P, pow(nbins,2))
     #print(*P2,  sep = '\n')
 
-    k=0
-    for i in P2:
-        with open("binormal_"+str(k)+".csv", "w+") as doc:
+    for k, i in enumerate(P2):
+        fileName = name+"_"+str(k)
+        with open(fileName+".csv", "w+") as doc:
             for j in i:
                 doc.write("{};{};{}\n".format(j[0],j[1],j[2]))
         doc.closed
-        k += 1
+        subprocess.call(srccode+" "+fileName+" "+grau, shell=True)
 
-    # Mostrar plots
-    #plt.show()    
-
-    ''' 
-    extent = [x[0], x[-1], y[0], y[-1]]
-    xt = []
-    yt = []
-    for i in range(0, len(x)-1):
-        xt.append(x[i] + (x[i+1]-x[i])/2)
-        yt.append(y[i] + (y[i+1]-y[i])/2)
-    zt = []
-    for i in z:
-        for j in i:
-            zt.append(j)
-    print(xt)
-    print(yt)
-    print(zt)
-    k = 0
-    with open(name, "w+") as doc:
-        for i in xt:
-            for j in yt:
-                print("[*] {},{},{}\n".format(i,j,zt[k]))
-                doc.write("{};{};{}\n".format(i,j,zt[k]))
-                k += 1
-    doc.closed
-    plt.imshow(z, extent=extent, interpolation='nearest')
-    plt.colorbar()
-    plt.show()
-    '''
 
 if __name__=='__main__':
-    #print("[*] Python version: {}".format(sys.version))
-    #print("[*] Python version: {}".format(platform.python_version()))
-    
-    subprocess.call("rm binormal*", shell=True)
-    if len(sys.argv) > 1:
-        generate('binormal.txt', int(sys.argv[1]), int(sys.argv[2]))
+    subprocess.call("rm "+prefix+"*", shell=True)
+    if len(sys.argv) == 4:
+        generate(prefix, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
     else:
-        generate()
+        print("Usage: ./generateBinormal <#pontos> <#bins> <grau do polinomio>")
+
+    print("[*] Local")
+    fileName="binormal_*.csv"
+    showData(fileName)
+    print("[*] Global")
+    fileName="binormal.csv"
+    showData(fileName)
+    plt.show()
+
